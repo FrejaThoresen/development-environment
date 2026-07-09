@@ -73,8 +73,9 @@ opencode
 Optional: Before you start opencode, do make install and source .venv/bin/activate if you want opencode in your python env.
 
 4. Launch Neovim
-
+Preferably, first activate env
 ```bash
+source .venv/bin/activate
 nvim
 ```
 
