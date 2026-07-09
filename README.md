@@ -70,6 +70,8 @@ opencode auth login
 opencode
 ```
 
+Optional: Before you start opencode, do make install and source .venv/bin/activate if you want opencode in your python env.
+
 4. Launch Neovim
 
 ```bash
@@ -79,7 +81,9 @@ nvim
 If the script couldn't bootstrap plugins (e.g., headless mode failed), launching nvim interactively will trigger the plugin installer automatically.
 
 5. Start tmux
+```bash
 tmux
+```
 
 Default prefix is Ctrl+b. Press ? for the keybinding list.
 
