@@ -49,7 +49,7 @@ Set environment variables in your shell profile
 Add to ~/.bashrc or ~/.zshrc:
 
 ```bash
-export DEVENV_DIR="$HOME/development-environment/copy_to_project"
+export DEVENV_DIR="$HOME/development-environment/docker"
 export COMPOSE_FILE="$DEVENV_DIR/docker-compose.yml"
 ```
 
