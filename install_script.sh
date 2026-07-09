@@ -111,6 +111,8 @@ ok "Node.js ready: $(node -v)"
 # ═══════════════════════════════════════════════════════════════
 info "Installing Neovim..."
 
+sudo -n apt-get install -y imagemagick
+
 curl -LO "https://github.com/neovim/neovim/releases/latest/download/$NVIM_ASSET"
 sudo tar -C /usr/local -xzf "$NVIM_ASSET"
 rm "$NVIM_ASSET"

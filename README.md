@@ -97,7 +97,5 @@ Node.js: Only installed if absent or below version 22. Existing newer versions a
 Docker: If Docker is already installed, the script skips installation but still verifies the service is running and the user is in the docker group.
 Neovim config: The config lives in its own repo (FrejaThoresen/nvim-config). To customize, fork it and update the clone URL in the script.
 
-
-
 # Optional setup
 Use kitty terminal, and see the github repository https://github.com/dexpota/kitty-themes for themes.
