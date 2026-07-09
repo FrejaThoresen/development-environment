@@ -19,7 +19,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-
+export TERM=tmux-256color
 
 info()  { echo -e "${BLUE}[INFO]${NC}  $*"; }
 ok()    { echo -e "${GREEN}[OK]${NC}    $*"; }
@@ -53,6 +53,7 @@ sudo apt-get install -y \
   tmux \
   libreadline-dev
 
+
 # fd-find installs as 'fdfind' on Debian/Ubuntu; symlink to 'fd' for nvim compatibility
 if command -v fd &>/dev/null; then
   ok "'fd' already available"
@@ -62,6 +63,27 @@ elif ! [ -L /usr/local/bin/fd ] && ! [ -f /usr/local/bin/fd ]; then
 fi
 
 ok "Base packages installed"
+# ═══════════════════════════════════════════════════════════════
+# TMUX CONFIG
+# ═══════════════════════════════════════════════════════════════
+info "Setting up tmux config..."
+
+# TPM (Tmux Plugin Manager)
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+    git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+    ok "TPM installed"
+fi
+
+TMUX_CONF_DIR="$(dirname "$(readlink -f "$0")")/dotfiles"
+
+if [ -f "$TMUX_CONF_DIR/tmux.conf" ]; then
+    ln -sf "$TMUX_CONF_DIR/tmux.conf" "$HOME/.tmux.conf"
+    ok "tmux config linked to ~/.tmux.conf"
+else
+    warn "tmux.conf not found in dotfiles/, skipping"
+fi
+
+
 
 # ═══════════════════════════════════════════════════════════════
 # 2. Node.js 22 (required for Copilot in Neovim)
