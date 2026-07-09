@@ -109,10 +109,14 @@ ok "Node.js ready: $(node -v)"
 # ═══════════════════════════════════════════════════════════════
 # 3. Neovim (latest stable from GitHub)
 # ═══════════════════════════════════════════════════════════════
-info "Installing Neovim..."
+info "Installing imagemagick..."
 
+sudo apt update
+sudo apt install libmagickwand-dev luajit luarocks pkgconf
+sudo luarocks install magick
 sudo -n apt-get install -y imagemagick
 
+info "Installing Neovim..."
 curl -LO "https://github.com/neovim/neovim/releases/latest/download/$NVIM_ASSET"
 sudo tar -C /usr/local -xzf "$NVIM_ASSET"
 rm "$NVIM_ASSET"
