@@ -24,31 +24,57 @@ One-shot install script for spinning up a consistent development environment on 
 ```bash
 chmod +x install_script.sh
 ./install_script.sh
+```
 
 ## Post-Install Steps
 The script prints these at the end, but here's the expanded version:
 
 1. Reboot (for Docker group)
+```bash
 sudo reboot
+```
 
 Required so the docker group membership takes effect.
 
 2. Verify Docker
+```bash
 docker ps
+```
 
 Should run without sudo.
+
+The docker-compose file contains the general setup. The ${PWD} resolves to wherever you run the command from (your project dir), and ${DEVENV_DIR} points to the dev-env repo. The opencode.json line mounts your personal config into the container at runtime - no copying needed.
+
+Set environment variables in your shell profile
+Add to ~/.bashrc or ~/.zshrc:
+
+```bash
+export DEVENV_DIR="$HOME/development-environment/copy_to_project"
+export COMPOSE_FILE="$DEVENV_DIR/docker-compose.yml"
+```
+
+COMPOSE_FILE tells Docker Compose to always use your compose file, so from any project directory you just run:
+```bash
+docker compose up -d --build
+docker compose exec -it opencode /bin/bash
+```
 
 3. Start opencode
 From your project directory containing the docker-compose.yml:
 
+```bash
 docker compose build --no-cache
 docker compose up --build -d
 docker compose exec -it opencode /bin/bash
 opencode auth login
 opencode
+```
 
 4. Launch Neovim
+
+```bash
 nvim
+```
 
 If the script couldn't bootstrap plugins (e.g., headless mode failed), launching nvim interactively will trigger the plugin installer automatically.
 
