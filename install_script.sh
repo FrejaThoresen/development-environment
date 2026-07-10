@@ -51,7 +51,9 @@ sudo apt-get install -y \
   xclip \
   vim \
   tmux \
-  libreadline-dev
+  libreadline-dev \
+  python3-venv \
+  python3-pip
 
 
 # fd-find installs as 'fdfind' on Debian/Ubuntu; symlink to 'fd' for nvim compatibility
@@ -109,12 +111,12 @@ ok "Node.js ready: $(node -v)"
 # ═══════════════════════════════════════════════════════════════
 # 3. Neovim (latest stable from GitHub)
 # ═══════════════════════════════════════════════════════════════
-info "Installing imagemagick..."
+info "Installing imagemagick (for image.nvim's magick_cli processor)..."
 
-sudo apt update
-sudo apt install libmagickwand-dev luajit luarocks pkgconf
-sudo luarocks install magick
-sudo -n apt-get install -y imagemagick
+# image.nvim is configured with processor = "magick_cli", which only needs
+# the regular ImageMagick CLI tools (identify/convert). The luarocks magick
+# rock is only needed for processor = "magick_rock", so we skip it.
+sudo apt-get install -y imagemagick
 
 info "Installing Neovim..."
 curl -LO "https://github.com/neovim/neovim/releases/latest/download/$NVIM_ASSET"
@@ -141,7 +143,42 @@ rm -f lazygit lazygit.tar.gz
 ok "Lazygit ${LAZYGIT_VERSION} installed"
 
 # ═══════════════════════════════════════════════════════════════
-# 5. Neovim config
+# 5. Python host for Neovim (molten-nvim + jupytext)
+# ═══════════════════════════════════════════════════════════════
+info "Setting up Neovim Python host venv (~/.venvs/neovim)..."
+
+# Dedicated venv for nvim's remote-plugin host. molten-nvim REQUIRES
+# pynvim + jupyter_client here, and jupytext.nvim needs the jupytext CLI.
+# Your project code still runs in a kernel from the PROJECT venv
+# (pip install ipykernel there — see README).
+NVIM_VENV="$HOME/.venvs/neovim"
+if [ ! -d "$NVIM_VENV" ]; then
+  mkdir -p "$HOME/.venvs"
+  python3 -m venv "$NVIM_VENV"
+fi
+"$NVIM_VENV/bin/pip" install --upgrade pip
+"$NVIM_VENV/bin/pip" install \
+  pynvim \
+  jupyter_client \
+  jupytext \
+  nbformat \
+  pillow \
+  cairosvg \
+  pyperclip \
+  requests \
+  websocket-client
+
+# jupytext.nvim shells out to the 'jupytext' executable — put it on PATH
+sudo ln -sf "$NVIM_VENV/bin/jupytext" /usr/local/bin/jupytext
+
+# NOTE: no global fallback kernel on purpose — running notebooks requires
+# a project .venv with ipykernel registered as a kernel (see README /
+# notebook_cheatsheet.md). nvim shows a clear warning if it's missing.
+
+ok "Neovim Python host ready ($("$NVIM_VENV/bin/python3" --version))"
+
+# ═══════════════════════════════════════════════════════════════
+# 6. Neovim config
 # ═══════════════════════════════════════════════════════════════
 info "Setting up Neovim config..."
 
@@ -164,11 +201,16 @@ fi
 info "Bootstrapping Neovim plugins (this may take a moment)..."
 nvim --headless "+Lazy! sync" +qa 2>/dev/null || warn "Plugin sync needs interactive launch — run 'nvim' manually after script completes."
 
+# Register molten-nvim's remote plugin now that pynvim exists.
+# Without this step :MoltenInit is "not an editor command".
+info "Registering Neovim remote plugins (molten)..."
+nvim --headless "+UpdateRemotePlugins" +qa 2>/dev/null || warn "Run :UpdateRemotePlugins inside nvim manually, then restart nvim."
+
 # ═══════════════════════════════════════════════════════════════
-# 6. Docker
+# 7. Docker
 # ═══════════════════════════════════════════════════════════════
 # ═══════════════════════════════════════════════════════════════
-# 6. Docker (with no-sudo setup)
+# 7. Docker (with no-sudo setup)
 # ═══════════════════════════════════════════════════════════════
 info "Setting up Docker..."
 
@@ -260,5 +302,11 @@ echo "       (plugins will auto-install on first launch if not already)"
 echo ""
 echo -e "  5. ${BOLD}Start tmux${NC}:"
 echo "       tmux"
-echo "       (Prefix: Ctrl+b, then ? for help)"
+echo "       (Prefix: Ctrl+b, then ? for help. First time: Ctrl+b I to install plugins)"
+echo ""
+echo -e "  6. ${BOLD}Run notebooks (per project, .venv required)${NC}:"
+echo "       source .venv/bin/activate"
+echo "       pip install ipykernel   # or: uv pip install ipykernel"
+echo "       python -m ipykernel install --user --name \"\$(basename \$PWD)\""
+echo "       nvim notebook.ipynb      # kernel auto-inits on open"
 echo ""
