@@ -85,6 +85,13 @@ else
     warn "tmux.conf not found in dotfiles/, skipping"
 fi
 
+# Install/update tmux plugins headlessly (no prefix+I needed)
+if [ -x "$HOME/.tmux/plugins/tpm/bin/install_plugins" ]; then
+    "$HOME/.tmux/plugins/tpm/bin/install_plugins" || warn "TPM plugin install failed — press prefix+I inside tmux"
+    "$HOME/.tmux/plugins/tpm/bin/update_plugins" all || true
+    ok "tmux plugins installed"
+fi
+
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -183,9 +190,13 @@ ok "Neovim Python host ready ($("$NVIM_VENV/bin/python3" --version))"
 info "Setting up Neovim config..."
 
 NVIM_CONFIG_DIR="$HOME/.config/nvim"
-if [ -d "$NVIM_CONFIG_DIR" ]; then
-  warn "Neovim config already exists at $NVIM_CONFIG_DIR"
-  warn "Skipping clone. To overwrite: rm -rf $NVIM_CONFIG_DIR && re-run."
+if [ -d "$NVIM_CONFIG_DIR/.git" ]; then
+  info "Neovim config exists — pulling latest..."
+  git -C "$NVIM_CONFIG_DIR" pull --ff-only || warn "Could not fast-forward $NVIM_CONFIG_DIR (local changes?). Resolve manually."
+  ok "Neovim config up to date"
+elif [ -d "$NVIM_CONFIG_DIR" ]; then
+  warn "$NVIM_CONFIG_DIR exists but is not a git clone — leaving it alone."
+  warn "To adopt the repo config: rm -rf $NVIM_CONFIG_DIR && re-run."
 else
   if command -v gh &>/dev/null; then
     gh repo clone FrejaThoresen/nvim-config "$NVIM_CONFIG_DIR"
@@ -202,9 +213,12 @@ info "Bootstrapping Neovim plugins (this may take a moment)..."
 nvim --headless "+Lazy! sync" +qa 2>/dev/null || warn "Plugin sync needs interactive launch — run 'nvim' manually after script completes."
 
 # Register molten-nvim's remote plugin now that pynvim exists.
-# Without this step :MoltenInit is "not an editor command".
+# IMPORTANT: molten is lazy-loaded (ft = python/markdown), and
+# :UpdateRemotePlugins only registers plugins that are LOADED, so we must
+# force-load it first. Without this, :MoltenInit is "not an editor command".
 info "Registering Neovim remote plugins (molten)..."
-nvim --headless "+UpdateRemotePlugins" +qa 2>/dev/null || warn "Run :UpdateRemotePlugins inside nvim manually, then restart nvim."
+nvim --headless "+Lazy! load molten-nvim" "+UpdateRemotePlugins" +qa 2>/dev/null \
+  || warn "Inside nvim run ':Lazy load molten-nvim' then ':UpdateRemotePlugins', then restart nvim."
 
 # ═══════════════════════════════════════════════════════════════
 # 7. Docker
