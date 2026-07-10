@@ -99,3 +99,12 @@ Neovim config: The config lives in its own repo (FrejaThoresen/nvim-config). To 
 
 # Optional setup
 Use kitty terminal, and see the github repository https://github.com/dexpota/kitty-themes for themes.
+
+
+If you want molten, do
+
+```bash
+source .venv/bin/activate 
+uv add ipykernel
+python -m ipykernel install --user --name "$(basename $PWD)"
+```
