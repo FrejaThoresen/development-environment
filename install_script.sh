@@ -28,8 +28,10 @@ warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 # ── Detect architecture ────────────────────────────────────────
 ARCH=$(uname -m)
 case "$ARCH" in
-  x86_64)  NVIM_ASSET="nvim-linux-x86_64.tar.gz" ;;
-  aarch64) NVIM_ASSET="nvim-linux-aarch64.tar.gz" ;;
+  # x86_64)  NVIM_ASSET="nvim-linux-x86_64.tar.gz" ;;
+  # aarch64) NVIM_ASSET="nvim-linux-aarch64.tar.gz" ;;
+  x86_64)  ;;
+  aarch64) ;;
   *) echo -e "${RED}Unsupported arch: $ARCH${NC}"; exit 1 ;;
 esac
 
@@ -97,42 +99,42 @@ fi
 # ═══════════════════════════════════════════════════════════════
 # 2. Node.js 22 (required for Copilot in Neovim)
 # ═══════════════════════════════════════════════════════════════
-info "Checking Node.js..."
-
-NEEDED_NODE=false
-if ! command -v node &>/dev/null; then
-  NEEDED_NODE=true
-elif [ "$(node -v | cut -dv -f1 | cut -d. -f1 | tr -d 'v')" -lt 22 ] 2>/dev/null; then
-  NEEDED_NODE=true
-fi
-
-if [ "$NEEDED_NODE" = true ]; then
-  info "Installing Node.js 22..."
-  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
-  sudo apt-get install -y nodejs
-else
-  ok "Node.js $(node -v) already satisfies requirements"
-fi
-ok "Node.js ready: $(node -v)"
+# info "Checking Node.js..."
+#
+# NEEDED_NODE=false
+# if ! command -v node &>/dev/null; then
+#   NEEDED_NODE=true
+# elif [ "$(node -v | cut -dv -f1 | cut -d. -f1 | tr -d 'v')" -lt 22 ] 2>/dev/null; then
+#   NEEDED_NODE=true
+# fi
+#
+# if [ "$NEEDED_NODE" = true ]; then
+#   info "Installing Node.js 22..."
+#   curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+#   sudo apt-get install -y nodejs
+# else
+#   ok "Node.js $(node -v) already satisfies requirements"
+# fi
+# ok "Node.js ready: $(node -v)"
 
 # ═══════════════════════════════════════════════════════════════
 # 3. Neovim (latest stable from GitHub)
 # ═══════════════════════════════════════════════════════════════
-info "Installing imagemagick (for image.nvim's magick_cli processor)..."
-
-# image.nvim is configured with processor = "magick_cli", which only needs
-# the regular ImageMagick CLI tools (identify/convert). The luarocks magick
-# rock is only needed for processor = "magick_rock", so we skip it.
-sudo apt-get install -y imagemagick
-
-info "Installing Neovim..."
-curl -LO "https://github.com/neovim/neovim/releases/latest/download/$NVIM_ASSET"
-sudo tar -C /usr/local -xzf "$NVIM_ASSET"
-rm "$NVIM_ASSET"
-NVIM_DIR="${NVIM_ASSET%.tar.gz}"
-sudo ln -sf "/usr/local/$NVIM_DIR/bin/nvim" /usr/local/bin/nvim
-
-ok "Neovim installed: $(nvim --version | head -1)"
+# info "Installing imagemagick (for image.nvim's magick_cli processor)..."
+#
+# # image.nvim is configured with processor = "magick_cli", which only needs
+# # the regular ImageMagick CLI tools (identify/convert). The luarocks magick
+# # rock is only needed for processor = "magick_rock", so we skip it.
+# sudo apt-get install -y imagemagick
+#
+# info "Installing Neovim..."
+# curl -LO "https://github.com/neovim/neovim/releases/latest/download/$NVIM_ASSET"
+# sudo tar -C /usr/local -xzf "$NVIM_ASSET"
+# rm "$NVIM_ASSET"
+# NVIM_DIR="${NVIM_ASSET%.tar.gz}"
+# sudo ln -sf "/usr/local/$NVIM_DIR/bin/nvim" /usr/local/bin/nvim
+#
+# ok "Neovim installed: $(nvim --version | head -1)"
 
 # ═══════════════════════════════════════════════════════════════
 # 4. Lazygit
@@ -152,73 +154,73 @@ ok "Lazygit ${LAZYGIT_VERSION} installed"
 # ═══════════════════════════════════════════════════════════════
 # 5. Python host for Neovim (molten-nvim + jupytext)
 # ═══════════════════════════════════════════════════════════════
-info "Setting up Neovim Python host venv (~/.venvs/neovim)..."
-
-# Dedicated venv for nvim's remote-plugin host. molten-nvim REQUIRES
-# pynvim + jupyter_client here, and jupytext.nvim needs the jupytext CLI.
-# Your project code still runs in a kernel from the PROJECT venv
-# (pip install ipykernel there — see README).
-NVIM_VENV="$HOME/.venvs/neovim"
-if [ ! -d "$NVIM_VENV" ]; then
-  mkdir -p "$HOME/.venvs"
-  python3 -m venv "$NVIM_VENV"
-fi
-"$NVIM_VENV/bin/pip" install --upgrade pip
-"$NVIM_VENV/bin/pip" install \
-  pynvim \
-  jupyter_client \
-  jupytext \
-  nbformat \
-  pillow \
-  cairosvg \
-  pyperclip \
-  requests \
-  websocket-client
-
-# jupytext.nvim shells out to the 'jupytext' executable — put it on PATH
-sudo ln -sf "$NVIM_VENV/bin/jupytext" /usr/local/bin/jupytext
-
-# NOTE: no global fallback kernel on purpose — running notebooks requires
-# a project .venv with ipykernel registered as a kernel (see README /
-# notebook_cheatsheet.md). nvim shows a clear warning if it's missing.
-
-ok "Neovim Python host ready ($("$NVIM_VENV/bin/python3" --version))"
+# info "Setting up Neovim Python host venv (~/.venvs/neovim)..."
+#
+# # Dedicated venv for nvim's remote-plugin host. molten-nvim REQUIRES
+# # pynvim + jupyter_client here, and jupytext.nvim needs the jupytext CLI.
+# # Your project code still runs in a kernel from the PROJECT venv
+# # (pip install ipykernel there — see README).
+# NVIM_VENV="$HOME/.venvs/neovim"
+# if [ ! -d "$NVIM_VENV" ]; then
+#   mkdir -p "$HOME/.venvs"
+#   python3 -m venv "$NVIM_VENV"
+# fi
+# "$NVIM_VENV/bin/pip" install --upgrade pip
+# "$NVIM_VENV/bin/pip" install \
+#   pynvim \
+#   jupyter_client \
+#   jupytext \
+#   nbformat \
+#   pillow \
+#   cairosvg \
+#   pyperclip \
+#   requests \
+#   websocket-client
+#
+# # jupytext.nvim shells out to the 'jupytext' executable — put it on PATH
+# sudo ln -sf "$NVIM_VENV/bin/jupytext" /usr/local/bin/jupytext
+#
+# # NOTE: no global fallback kernel on purpose — running notebooks requires
+# # a project .venv with ipykernel registered as a kernel (see README /
+# # notebook_cheatsheet.md). nvim shows a clear warning if it's missing.
+#
+# ok "Neovim Python host ready ($("$NVIM_VENV/bin/python3" --version))"
 
 # ═══════════════════════════════════════════════════════════════
 # 6. Neovim config
 # ═══════════════════════════════════════════════════════════════
-info "Setting up Neovim config..."
-
-NVIM_CONFIG_DIR="$HOME/.config/nvim"
-if [ -d "$NVIM_CONFIG_DIR/.git" ]; then
-  info "Neovim config exists — pulling latest..."
-  git -C "$NVIM_CONFIG_DIR" pull --ff-only || warn "Could not fast-forward $NVIM_CONFIG_DIR (local changes?). Resolve manually."
-  ok "Neovim config up to date"
-elif [ -d "$NVIM_CONFIG_DIR" ]; then
-  warn "$NVIM_CONFIG_DIR exists but is not a git clone — leaving it alone."
-  warn "To adopt the repo config: rm -rf $NVIM_CONFIG_DIR && re-run."
-else
-  if command -v gh &>/dev/null; then
-    gh repo clone FrejaThoresen/nvim-config "$NVIM_CONFIG_DIR"
-  elif command -v git &>/dev/null; then
-    git clone https://github.com/FrejaThoresen/nvim-config.git "$NVIM_CONFIG_DIR"
-  else
-    warn "Neither 'gh' nor 'git' available — skipping config clone."
-  fi
-  ok "Neovim config cloned to $NVIM_CONFIG_DIR"
-fi
-
-# First launch to bootstrap plugins
-info "Bootstrapping Neovim plugins (this may take a moment)..."
-nvim --headless "+Lazy! sync" +qa 2>/dev/null || warn "Plugin sync needs interactive launch — run 'nvim' manually after script completes."
-
-# Register molten-nvim's remote plugin now that pynvim exists.
-# IMPORTANT: molten is lazy-loaded (ft = python/markdown), and
-# :UpdateRemotePlugins only registers plugins that are LOADED, so we must
-# force-load it first. Without this, :MoltenInit is "not an editor command".
-info "Registering Neovim remote plugins (molten)..."
-nvim --headless "+Lazy! load molten-nvim" "+UpdateRemotePlugins" +qa 2>/dev/null \
-  || warn "Inside nvim run ':Lazy load molten-nvim' then ':UpdateRemotePlugins', then restart nvim."
+# info "Setting up Neovim config..."
+#
+# NVIM_CONFIG_DIR="$HOME/.config/nvim"
+# if [ -d "$NVIM_CONFIG_DIR/.git" ]; then
+#   info "Neovim config exists — pulling latest..."
+#   git -C "$NVIM_CONFIG_DIR" pull --ff-only || warn "Could not fast-forward $NVIM_CONFIG_DIR (local changes?). Resolve manually."
+#   ok "Neovim config up to date"
+# elif [ -d "$NVIM_CONFIG_DIR" ]; then
+#   warn "$NVIM_CONFIG_DIR exists but is not a git clone — leaving it alone."
+#   warn "To adopt the repo config: rm -rf $NVIM_CONFIG_DIR && re-run."
+# else
+#   if command -v gh &>/dev/null; then
+#     gh repo clone FrejaThoresen/nvim-config "$NVIM_CONFIG_DIR"
+#   elif command -v git &>/dev/null; then
+#     git clone https://github.com/FrejaThoresen/nvim-config.git "$NVIM_CONFIG_DIR"
+#   else
+#     warn "Neither 'gh' nor 'git' available — skipping config clone."
+#   fi
+#   ok "Neovim config cloned to $NVIM_CONFIG_DIR"
+# fi
+#
+# # First launch to bootstrap plugins
+# info "Bootstrapping Neovim plugins (this may take a moment)..."
+# nvim --headless "+Lazy! sync" +qa 2>/dev/null || warn "Plugin sync needs interactive launch — run 'nvim' manually after script completes."
+#
+# # Register molten-nvim's remote plugin now that pynvim exists.
+# # IMPORTANT: molten is lazy-loaded (ft = python/markdown), and
+# # :UpdateRemotePlugins only registers plugins that are LOADED, so we must
+# # force-load it first. Without this, :MoltenInit is "not an editor command".
+# info "Registering Neovim remote plugins (molten)..."
+# nvim --headless "+Lazy! load molten-nvim" "+UpdateRemotePlugins" +qa 2>/dev/null \
+#   || warn "Inside nvim run ':Lazy load molten-nvim' then ':UpdateRemotePlugins', then restart nvim."
 
 # ═══════════════════════════════════════════════════════════════
 # 7. Docker
