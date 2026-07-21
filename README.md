@@ -55,8 +55,16 @@ export COMPOSE_FILE="$DEVENV_DIR/docker-compose.yml"
 
 COMPOSE_FILE tells Docker Compose to always use your compose file, so from any project directory you just run:
 ```bash
+export CONTAINER_NAME=my-project        # name for this container (defaults to "opencode")
 docker compose up -d --build
 docker compose exec -it opencode /bin/bash
+```
+
+`CONTAINER_NAME` sets the container's name, so you can run several containers with different names. To run fully independent instances at the same time (separate containers and volumes), also set a distinct project name before each one:
+```bash
+export CONTAINER_NAME=project-a
+export COMPOSE_PROJECT_NAME=project-a
+docker compose up -d --build
 ```
 
 3. Start opencode

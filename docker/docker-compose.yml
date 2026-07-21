@@ -3,6 +3,7 @@ services:
     build:
       context: ${DEVENV_DIR}
       dockerfile: Dockerfile
+    container_name: ${CONTAINER_NAME:-opencode}
     init: true
     stdin_open: true
     tty: true
